@@ -169,7 +169,7 @@ enum class UVSymLinkFlags: int {
  * for further details.
  */
 template<details::UVFsType e>
-struct FsEvent {
+struct UVW_EXTERN FsEvent {
     FsEvent(const char *pathname) noexcept: path{pathname} {}
 
     const char * path; /*!< The path affecting the request. */
@@ -183,7 +183,7 @@ struct FsEvent {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::READ> {
+struct UVW_EXTERN FsEvent<details::UVFsType::READ> {
     FsEvent(const char *pathname, std::unique_ptr<const char[]> buf, std::size_t sz) noexcept
         : path{pathname}, data{std::move(buf)}, size{sz}
     {}
@@ -201,7 +201,7 @@ struct FsEvent<details::UVFsType::READ> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::WRITE> {
+struct UVW_EXTERN FsEvent<details::UVFsType::WRITE> {
     FsEvent(const char *pathname, std::size_t sz) noexcept
         : path{pathname}, size{sz}
     {}
@@ -218,7 +218,7 @@ struct FsEvent<details::UVFsType::WRITE> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::SENDFILE> {
+struct UVW_EXTERN FsEvent<details::UVFsType::SENDFILE> {
     FsEvent(const char *pathname, std::size_t sz) noexcept
         : path{pathname}, size{sz}
     {}
@@ -235,7 +235,7 @@ struct FsEvent<details::UVFsType::SENDFILE> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::STAT> {
+struct UVW_EXTERN FsEvent<details::UVFsType::STAT> {
     FsEvent(const char *pathname, Stat curr) noexcept
         : path{pathname}, stat{std::move(curr)}
     {}
@@ -252,7 +252,7 @@ struct FsEvent<details::UVFsType::STAT> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::FSTAT> {
+struct UVW_EXTERN FsEvent<details::UVFsType::FSTAT> {
     FsEvent(const char *pathname, Stat curr) noexcept
         : path{pathname}, stat{std::move(curr)}
     {}
@@ -269,7 +269,7 @@ struct FsEvent<details::UVFsType::FSTAT> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::LSTAT> {
+struct UVW_EXTERN FsEvent<details::UVFsType::LSTAT> {
     FsEvent(const char *pathname, Stat curr) noexcept
         : path{pathname}, stat{std::move(curr)}
     {}
@@ -286,7 +286,7 @@ struct FsEvent<details::UVFsType::LSTAT> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::STATFS> {
+struct UVW_EXTERN FsEvent<details::UVFsType::STATFS> {
     FsEvent(const char *pathname, Statfs curr) noexcept
         : path{pathname}, statfs{std::move(curr)}
     {}
@@ -303,7 +303,7 @@ struct FsEvent<details::UVFsType::STATFS> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::MKSTEMP> {
+struct UVW_EXTERN FsEvent<details::UVFsType::MKSTEMP> {
     FsEvent(const char *pathname, std::size_t desc) noexcept
         : path{pathname}, descriptor{desc}
     {}
@@ -320,7 +320,7 @@ struct FsEvent<details::UVFsType::MKSTEMP> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::SCANDIR> {
+struct UVW_EXTERN FsEvent<details::UVFsType::SCANDIR> {
     FsEvent(const char *pathname, std::size_t sz) noexcept
         : path{pathname}, size{sz}
     {}
@@ -337,7 +337,7 @@ struct FsEvent<details::UVFsType::SCANDIR> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::READLINK> {
+struct UVW_EXTERN FsEvent<details::UVFsType::READLINK> {
     explicit FsEvent(const char *pathname, const char *buf, std::size_t sz) noexcept
         : path{pathname}, data{buf}, size{sz}
     {}
@@ -355,7 +355,7 @@ struct FsEvent<details::UVFsType::READLINK> {
  * functionalities.
  */
 template<>
-struct FsEvent<details::UVFsType::READDIR> {
+struct UVW_EXTERN FsEvent<details::UVFsType::READDIR> {
     using EntryType = details::UVDirentTypeT;
 
     FsEvent(const char *name, EntryType type, bool eos) noexcept
@@ -373,32 +373,32 @@ struct FsEvent<details::UVFsType::READDIR> {
  *
  * Not directly instantiable, should not be used by the users of the library.
  */
-template<typename T>
-class FsRequest: public Request<T, uv_fs_t> {
+template<typename T, typename ...Events>
+class UVW_EXTERN FsRequest: public Request<T, uv_fs_t, Events...> {
 protected:
     template<details::UVFsType e>
     static void fsGenericCallback(uv_fs_t *req) {
-        auto ptr = Request<T, uv_fs_t>::reserve(req);
+        auto ptr = Request<T, uv_fs_t, Events...>::reserve(req);
         if(req->result < 0) { ptr->publish(ErrorEvent{req->result}); }
         else { ptr->publish(FsEvent<e>{req->path}); }
     }
 
     template<details::UVFsType e>
     static void fsResultCallback(uv_fs_t *req) {
-        auto ptr = Request<T, uv_fs_t>::reserve(req);
+        auto ptr = Request<T, uv_fs_t,Events...>::reserve(req);
         if(req->result < 0) { ptr->publish(ErrorEvent{req->result}); }
         else { ptr->publish(FsEvent<e>{req->path, static_cast<std::size_t>(req->result)}); }
     }
 
     template<details::UVFsType e>
     static void fsStatCallback(uv_fs_t *req) {
-        auto ptr = Request<T, uv_fs_t>::reserve(req);
+        auto ptr = Request<T, uv_fs_t, Events...>::reserve(req);
         if(req->result < 0) { ptr->publish(ErrorEvent{req->result}); }
         else { ptr->publish(FsEvent<e>{req->path, req->statbuf}); }
     }
 
     static void fsStatfsCallback(uv_fs_t *req) {
-        auto ptr = Request<T, uv_fs_t>::reserve(req);
+        auto ptr = Request<T, uv_fs_t, Events...>::reserve(req);
         if(req->result < 0) { ptr->publish(ErrorEvent{req->result}); }
         else { ptr->publish(FsEvent<Type::STATFS>{req->path, *static_cast<Statfs *>(req->ptr)}); }
     }
@@ -420,7 +420,7 @@ public:
     using Type = details::UVFsType;
     using EntryType = details::UVDirentTypeT;
 
-    using Request<T, uv_fs_t>::Request;
+    using Request<T, uv_fs_t, Events...>::Request;
 };
 
 
@@ -436,7 +436,46 @@ public:
  * [documentation](http://docs.libuv.org/en/v1.x/fs.html)
  * for further details.
  */
-class UVW_EXTERN FileReq final: public FsRequest<FileReq> {
+class UVW_EXTERN FileReq final: public FsRequest<FileReq,
+        uvw::FsEvent<details::UVFsType::UNKNOWN>,
+        uvw::FsEvent<details::UVFsType::CUSTOM>,
+        uvw::FsEvent<details::UVFsType::OPEN>,
+        uvw::FsEvent<details::UVFsType::CLOSE>,
+        uvw::FsEvent<details::UVFsType::READ>,
+        uvw::FsEvent<details::UVFsType::WRITE>,
+        uvw::FsEvent<details::UVFsType::SENDFILE>,
+        uvw::FsEvent<details::UVFsType::STAT>,
+        uvw::FsEvent<details::UVFsType::LSTAT>,
+        uvw::FsEvent<details::UVFsType::FSTAT>,
+        uvw::FsEvent<details::UVFsType::FTRUNCATE>,
+        uvw::FsEvent<details::UVFsType::UTIME>,
+        uvw::FsEvent<details::UVFsType::FUTIME>,
+        uvw::FsEvent<details::UVFsType::ACCESS>,
+        uvw::FsEvent<details::UVFsType::CHMOD>,
+        uvw::FsEvent<details::UVFsType::FCHMOD>,
+        uvw::FsEvent<details::UVFsType::FSYNC>,
+        uvw::FsEvent<details::UVFsType::FDATASYNC>,
+        uvw::FsEvent<details::UVFsType::UNLINK>,
+        uvw::FsEvent<details::UVFsType::RMDIR>,
+        uvw::FsEvent<details::UVFsType::MKDIR>,
+        uvw::FsEvent<details::UVFsType::MKDTEMP>,
+        uvw::FsEvent<details::UVFsType::RENAME>,
+        uvw::FsEvent<details::UVFsType::SCANDIR>,
+        uvw::FsEvent<details::UVFsType::LINK>,
+        uvw::FsEvent<details::UVFsType::SYMLINK>,
+        uvw::FsEvent<details::UVFsType::READLINK>,
+        uvw::FsEvent<details::UVFsType::CHOWN>,
+        uvw::FsEvent<details::UVFsType::FCHOWN>,
+        uvw::FsEvent<details::UVFsType::REALPATH>,
+        uvw::FsEvent<details::UVFsType::COPYFILE>,
+        uvw::FsEvent<details::UVFsType::LCHOWN>,
+        uvw::FsEvent<details::UVFsType::OPENDIR>,
+        uvw::FsEvent<details::UVFsType::READDIR>,
+        uvw::FsEvent<details::UVFsType::CLOSEDIR>,
+        uvw::FsEvent<details::UVFsType::STATFS>,
+        uvw::FsEvent<details::UVFsType::MKSTEMP>,
+        uvw::FsEvent<details::UVFsType::LUTIME>,
+        ErrorEvent> {
     static constexpr uv_file BAD_FD = -1;
 
     static void fsOpenCallback(uv_fs_t *req);
@@ -787,7 +826,46 @@ private:
  * [documentation](http://docs.libuv.org/en/v1.x/fs.html)
  * for further details.
  */
-class UVW_EXTERN FsReq final: public FsRequest<FsReq> {
+class UVW_EXTERN FsReq final: public FsRequest<FsReq,
+        uvw::FsEvent<details::UVFsType::UNKNOWN>,
+        uvw::FsEvent<details::UVFsType::CUSTOM>,
+        uvw::FsEvent<details::UVFsType::OPEN>,
+        uvw::FsEvent<details::UVFsType::CLOSE>,
+        uvw::FsEvent<details::UVFsType::READ>,
+        uvw::FsEvent<details::UVFsType::WRITE>,
+        uvw::FsEvent<details::UVFsType::SENDFILE>,
+        uvw::FsEvent<details::UVFsType::STAT>,
+        uvw::FsEvent<details::UVFsType::LSTAT>,
+        uvw::FsEvent<details::UVFsType::FSTAT>,
+        uvw::FsEvent<details::UVFsType::FTRUNCATE>,
+        uvw::FsEvent<details::UVFsType::UTIME>,
+        uvw::FsEvent<details::UVFsType::FUTIME>,
+        uvw::FsEvent<details::UVFsType::ACCESS>,
+        uvw::FsEvent<details::UVFsType::CHMOD>,
+        uvw::FsEvent<details::UVFsType::FCHMOD>,
+        uvw::FsEvent<details::UVFsType::FSYNC>,
+        uvw::FsEvent<details::UVFsType::FDATASYNC>,
+        uvw::FsEvent<details::UVFsType::UNLINK>,
+        uvw::FsEvent<details::UVFsType::RMDIR>,
+        uvw::FsEvent<details::UVFsType::MKDIR>,
+        uvw::FsEvent<details::UVFsType::MKDTEMP>,
+        uvw::FsEvent<details::UVFsType::RENAME>,
+        uvw::FsEvent<details::UVFsType::SCANDIR>,
+        uvw::FsEvent<details::UVFsType::LINK>,
+        uvw::FsEvent<details::UVFsType::SYMLINK>,
+        uvw::FsEvent<details::UVFsType::READLINK>,
+        uvw::FsEvent<details::UVFsType::CHOWN>,
+        uvw::FsEvent<details::UVFsType::FCHOWN>,
+        uvw::FsEvent<details::UVFsType::REALPATH>,
+        uvw::FsEvent<details::UVFsType::COPYFILE>,
+        uvw::FsEvent<details::UVFsType::LCHOWN>,
+        uvw::FsEvent<details::UVFsType::OPENDIR>,
+        uvw::FsEvent<details::UVFsType::READDIR>,
+        uvw::FsEvent<details::UVFsType::CLOSEDIR>,
+        uvw::FsEvent<details::UVFsType::STATFS>,
+        uvw::FsEvent<details::UVFsType::MKSTEMP>,
+        uvw::FsEvent<details::UVFsType::LUTIME>,
+                ErrorEvent> {
     static void fsReadlinkCallback(uv_fs_t *req);
     static void fsReaddirCallback(uv_fs_t *req);
 

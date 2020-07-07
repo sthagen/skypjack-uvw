@@ -29,4 +29,13 @@ UVW_INLINE void IdleHandle::stop() {
 }
 
 
+    template class UVW_EXTERN Resource<IdleHandle, uv_idle_t , IdleEvent, CloseEvent, ErrorEvent>;
+    template struct UVW_EXTERN Emitter<IdleHandle, IdleEvent, CloseEvent, ErrorEvent>::Connection<IdleEvent>;
+    template struct UVW_EXTERN Emitter<IdleHandle, IdleEvent, CloseEvent, ErrorEvent>::Connection<CloseEvent>;
+    template struct UVW_EXTERN Emitter<IdleHandle, IdleEvent, CloseEvent, ErrorEvent>::Connection<ErrorEvent>;
+    template struct UVW_EXTERN Emitter<IdleHandle, IdleEvent, CloseEvent, ErrorEvent>::Handler<IdleEvent>;
+    template struct UVW_EXTERN Emitter<IdleHandle, IdleEvent, CloseEvent, ErrorEvent>::Handler<CloseEvent>;
+    template struct UVW_EXTERN Emitter<IdleHandle, IdleEvent, CloseEvent, ErrorEvent>::Handler<ErrorEvent>;
+
+
 }

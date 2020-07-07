@@ -31,7 +31,7 @@ UVW_INLINE void PollHandle::startCallback(uv_poll_t *handle, int status, int eve
     if(status) {
         poll.publish(ErrorEvent{status});
     } else {
-        poll.publish(PollEvent{static_cast<std::underlying_type_t<Event>>(events)});
+        poll.publish(PollEvent{Flags<details::UVPollEvent>(events)});
     }
 }
 
@@ -54,6 +54,5 @@ UVW_INLINE void PollHandle::start(PollHandle::Event event) {
 UVW_INLINE void PollHandle::stop() {
     invoke(&uv_poll_stop, get());
 }
-
 
 }

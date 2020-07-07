@@ -57,7 +57,7 @@ enum class UVTTYVTermStateT: std::underlying_type_t<uv_tty_vtermstate_t> {
  * [documentation](http://docs.libuv.org/en/v1.x/tty.html#c.uv_tty_init)
  * for further details.
  */
-class UVW_EXTERN TTYHandle final: public StreamHandle<TTYHandle, uv_tty_t> {
+class UVW_EXTERN TTYHandle final: public StreamHandle<TTYHandle, uv_tty_t, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent> {
     static std::shared_ptr<details::ResetModeMemo> resetModeMemo();
 
 public:

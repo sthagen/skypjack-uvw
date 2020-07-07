@@ -21,7 +21,7 @@ UVW_INLINE void FsEventHandle::startCallback(uv_fs_event_t *handle, const char *
     if(status) {
         fsEvent.publish(ErrorEvent{status});
     } else {
-        fsEvent.publish(FsEventEvent{filename, static_cast<std::underlying_type_t<details::UVFsEvent>>(events)});
+        fsEvent.publish(FsEventEvent{filename, Flags<details::UVFsEvent>(events)});
     }
 }
 
@@ -49,6 +49,5 @@ UVW_INLINE void FsEventHandle::stop() {
 UVW_INLINE std::string FsEventHandle::path() noexcept {
     return details::tryRead(&uv_fs_event_getpath, get());
 }
-
 
 }

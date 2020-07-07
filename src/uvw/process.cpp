@@ -128,5 +128,4 @@ UVW_INLINE ProcessHandle &ProcessHandle::gid(Gid id) {
     return *this;
 }
 
-
 }

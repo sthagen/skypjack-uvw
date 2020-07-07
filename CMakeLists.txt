@@ -84,6 +84,8 @@ function(fetch_libuv)
 
     add_library(uv::uv-static ALIAS uv_a)
     set_target_properties(uv_a PROPERTIES POSITION_INDEPENDENT_CODE 1)
+
+    add_library(uv::uv-shared ALIAS uv)
     set_target_properties(uv PROPERTIES POSITION_INDEPENDENT_CODE 1)
 endfunction()
 

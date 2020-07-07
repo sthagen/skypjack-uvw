@@ -45,7 +45,7 @@ enum class UVHandleType: std::underlying_type_t<uv_handle_type> {
 
 
 template<typename T>
-struct UVTypeWrapper {
+struct UVW_EXTERN UVTypeWrapper {
     using Type = T;
 
     constexpr UVTypeWrapper(): value{} {}
@@ -82,7 +82,7 @@ bool operator==(UVTypeWrapper<T> lhs, UVTypeWrapper<T> rhs) {
  * type), thus converted to the underlying type when needed.
  */
 template<typename E>
-class Flags final {
+class UVW_EXTERN Flags final {
     using InnerType = std::underlying_type_t<E>;
 
     constexpr InnerType toInnerType(E flag) const noexcept { return static_cast<InnerType>(flag); }
@@ -368,23 +368,23 @@ template<typename>
 struct IpTraits;
 
 template<>
-struct IpTraits<IPv4> {
+struct UVW_EXTERN IpTraits<IPv4> {
     using Type = sockaddr_in;
     using AddrFuncType = int (*)(const char*, int, Type*);
     using NameFuncType = int (*)(const Type*, char*, std::size_t);
-    static UVW_EXTERN const AddrFuncType addrFunc;
-    static UVW_EXTERN const NameFuncType nameFunc;
+    static const AddrFuncType addrFunc;
+    static const NameFuncType nameFunc;
     static constexpr auto sinPort(const Type *addr) { return addr->sin_port; }
 };
 
 
 template<>
-struct IpTraits<IPv6> {
+struct UVW_EXTERN IpTraits<IPv6> {
     using Type = sockaddr_in6;
     using AddrFuncType = int(*)(const char *, int, Type *);
     using NameFuncType = int(*)(const Type *, char *, std::size_t);
-    static UVW_EXTERN const AddrFuncType addrFunc;
-    static UVW_EXTERN const NameFuncType nameFunc;
+    static const AddrFuncType addrFunc;
+    static const NameFuncType nameFunc;
     static constexpr auto sinPort(const Type *addr) { return addr->sin6_port; }
 };
 

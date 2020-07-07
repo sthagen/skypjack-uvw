@@ -60,11 +60,14 @@ enum class UVMembership: std::underlying_type_t<uv_membership> {
 };
 
 
-class UVW_EXTERN SendReq final: public Request<SendReq, uv_udp_send_t> {
+class UVW_EXTERN SendReq final: public Request<SendReq, uv_udp_send_t, SendEvent, ErrorEvent> {
 public:
     using Deleter = void(*)(char *);
 
-    SendReq(ConstructorAccess ca, std::shared_ptr<Loop> loop, std::unique_ptr<char[], Deleter> dt, unsigned int len);
+    SendReq(ConstructorAccess ca, std::shared_ptr<Loop> loop, std::unique_ptr<char[], Deleter> dt, unsigned int len) :
+            Request<SendReq, uv_udp_send_t, SendEvent, ErrorEvent>{ca, std::move(loop)}, data{std::move(dt)},
+            buf{uv_buf_init(data.get(), len)}
+    {}
 
     void send(uv_udp_t *handle, const struct sockaddr* addr);
 
@@ -93,7 +96,7 @@ private:
  * [documentation](http://docs.libuv.org/en/v1.x/udp.html#c.uv_udp_init_ex)
  * for further details.
  */
-class UVW_EXTERN UDPHandle final: public Handle<UDPHandle, uv_udp_t> {
+class UVW_EXTERN UDPHandle final: public Handle<UDPHandle, uv_udp_t, UDPDataEvent, SendEvent, CloseEvent, ErrorEvent> {
     template<typename I>
     static void recvCallback(uv_udp_t *handle, ssize_t nread, const uv_buf_t *buf, const sockaddr *addr, unsigned flags) {
         const typename details::IpTraits<I>::Type *aptr = reinterpret_cast<const typename details::IpTraits<I>::Type *>(addr);

@@ -75,8 +75,8 @@ struct UVW_EXTERN DataEvent {
 namespace details {
 
 
-struct ConnectReq final: public Request<ConnectReq, uv_connect_t> {
-    using Request::Request;
+struct UVW_EXTERN ConnectReq final: public Request<ConnectReq, uv_connect_t, ConnectEvent, ErrorEvent> {
+    using Request<ConnectReq, uv_connect_t, ConnectEvent, ErrorEvent>::Request;
 
     template<typename F, typename... Args>
     void connect(F &&f, Args&&... args) {
@@ -85,20 +85,22 @@ struct ConnectReq final: public Request<ConnectReq, uv_connect_t> {
 };
 
 
-struct UVW_EXTERN ShutdownReq final: public Request<ShutdownReq, uv_shutdown_t> {
-    using Request::Request;
+struct UVW_EXTERN ShutdownReq final: public Request<ShutdownReq, uv_shutdown_t, ShutdownEvent, ErrorEvent> {
+    using Request<ShutdownReq, uv_shutdown_t, ShutdownEvent, ErrorEvent>::Request;
 
     void shutdown(uv_stream_t *handle);
 };
 
 
 template<typename Deleter>
-class WriteReq final: public Request<WriteReq<Deleter>, uv_write_t> {
-    using ConstructorAccess = typename Request<WriteReq<Deleter>, uv_write_t>::ConstructorAccess;
+class UVW_EXTERN WriteReq final: public Request<WriteReq<Deleter>, uv_write_t, WriteEvent, ErrorEvent> {
+    using Request<WriteReq<Deleter>, uv_write_t, WriteEvent, ErrorEvent>::Request;
+
+    using ConstructorAccess = typename Request<WriteReq<Deleter>, uv_write_t, WriteEvent, ErrorEvent>::ConstructorAccess;
 
 public:
     WriteReq(ConstructorAccess ca, std::shared_ptr<Loop> loop, std::unique_ptr<char[], Deleter> dt, unsigned int len)
-        : Request<WriteReq<Deleter>, uv_write_t>{ca, std::move(loop)},
+        : Request<WriteReq<Deleter>, uv_write_t, WriteEvent, ErrorEvent>{ca, std::move(loop)},
           data{std::move(dt)},
           buf{uv_buf_init(data.get(), len)}
     {}
@@ -127,8 +129,8 @@ private:
  * StreamHandle is an intermediate type, `uvw` provides three stream
  * implementations: TCPHandle, PipeHandle and TTYHandle.
  */
-template<typename T, typename U>
-class StreamHandle: public Handle<T, U> {
+template<typename T, typename U, typename ...Events>
+class UVW_EXTERN StreamHandle: public Handle<T, U, Events...> {
     static constexpr unsigned int DEFAULT_BACKLOG = 128;
 
     static void readCallback(uv_stream_t *handle, ssize_t nread, const uv_buf_t *buf) {
@@ -160,11 +162,11 @@ class StreamHandle: public Handle<T, U> {
 
 public:
 #ifdef _MSC_VER
-    StreamHandle(typename Handle<T, U>::ConstructorAccess ca, std::shared_ptr<Loop> ref)
-        : Handle<T, U>{ca, std::move(ref)}
+    StreamHandle(typename Handle<T, U, Events...>::ConstructorAccess ca, std::shared_ptr<Loop> ref)
+        : Handle<T, U, Events...>{ca, std::move(ref)}
     {}
 #else
-    using Handle<T, U>::Handle;
+    using Handle<T, U, Events...>::Handle;
 #endif
 
     /**

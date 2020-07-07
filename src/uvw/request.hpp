@@ -20,8 +20,8 @@ namespace uvw {
  *
  * Base type for all `uvw` request types.
  */
-template<typename T, typename U>
-class Request: public Resource<T, U> {
+template<typename T, typename U, typename ...Events>
+class UVW_EXTERN Request: public Resource<T, U, Events...> {
 protected:
     static auto reserve(U *req) {
         auto ptr = static_cast<T*>(req->data)->shared_from_this();
@@ -43,13 +43,13 @@ protected:
             this->leak();
         } else {
             auto err = std::forward<F>(f)(std::forward<Args>(args)...);
-            if(err) { Emitter<T>::publish(ErrorEvent{err}); }
+            if(err) { Emitter<T, Events...>::publish(ErrorEvent{err}); }
             else { this->leak(); }
         }
     }
 
 public:
-    using Resource<T, U>::Resource;
+    using Resource<T, U, Events...>::Resource;
 
     /**
     * @brief Cancels a pending request.

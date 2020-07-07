@@ -10,6 +10,7 @@
 #include <vector>
 #include <memory>
 #include <list>
+#include <tuple>
 #include <uv.h>
 #include "config.h"
 
@@ -17,7 +18,6 @@ UVW_MSVC_WARNING_PUSH_DISABLE_DLLINTERFACE();
 
 
 namespace uvw {
-
 
 /**
  * @brief The ErrorEvent event.
@@ -85,24 +85,30 @@ private:
  * Almost everything in `uvw` is an event emitter.<br/>
  * This is the base class from which resources and loops inherit.
  */
-template<typename T>
-class Emitter {
-    struct BaseHandler {
+template<typename T, typename ...Events>
+class UVW_EXTERN Emitter {
+
+    struct UVW_EXTERN BaseHandler {
         virtual ~BaseHandler() noexcept = default;
         virtual bool empty() const noexcept = 0;
         virtual void clear() noexcept = 0;
     };
 
     template<typename E>
-    struct Handler final: BaseHandler {
+    struct UVW_EXTERN Handler final: BaseHandler {
         using Listener = std::function<void(E &, T &)>;
         using Element = std::pair<bool, Listener>;
         using ListenerList = std::list<Element>;
         using Connection = typename ListenerList::iterator;
 
         bool empty() const noexcept override {
-            auto pred = [](auto &&element){ return element.first; };
+            auto pred = [](auto &&element){
+                return element.first;
+            };
 
+            if (onceL.empty() && onL.empty()) {
+                return true;
+            }
             return std::all_of(onceL.cbegin(), onceL.cend(), pred) &&
                     std::all_of(onL.cbegin(), onL.cend(), pred);
         }
@@ -160,36 +166,10 @@ class Emitter {
         ListenerList onL{};
     };
 
-    static std::size_t next_type() noexcept {
-        static std::size_t counter = 0;
-        return counter++;
-    }
-
-    template<typename>
-    static std::size_t event_type() noexcept {
-        static std::size_t value = next_type();
-        return value;
-    }
-
-    template<typename E>
-    Handler<E> & handler() noexcept {
-        std::size_t type = event_type<E>();
-
-        if(!(type < handlers.size())) {
-            handlers.resize(type+1);
-        }
-
-        if(!handlers[type]) {
-           handlers[type] = std::make_unique<Handler<E>>();
-        }
-
-        return static_cast<Handler<E>&>(*handlers[type]);
-    }
-
 protected:
     template<typename E>
     void publish(E event) {
-        handler<E>().publish(std::move(event), *static_cast<T*>(this));
+        std::get<Handler<E>>(pools).publish(std::move(event), *static_cast<T*>(this));
     }
 
 public:
@@ -212,12 +192,13 @@ public:
      * type is registered.
      */
     template<typename E>
-    struct Connection: private Handler<E>::Connection {
-        template<typename> friend class Emitter;
+    struct UVW_EXTERN Connection: private Handler<E>::Connection {
+        template<typename, typename ...> friend class Emitter;
 
         Connection() = default;
         Connection(const Connection &) = default;
         Connection(Connection &&) = default;
+        ~Connection() = default;
 
         Connection(typename Handler<E>::Connection conn)
             : Handler<E>::Connection{std::move(conn)}
@@ -228,7 +209,7 @@ public:
     };
 
     virtual ~Emitter() noexcept {
-        static_assert(std::is_base_of_v<Emitter<T>, T>);
+        static_assert(std::is_base_of_v<Emitter<T, Events...>, T>);
     }
 
     /**
@@ -248,7 +229,7 @@ public:
      */
     template<typename E>
     Connection<E> on(Listener<E> f) {
-        return handler<E>().on(std::move(f));
+        return std::get<Handler<E>>(pools).on(std::move(f));
     }
 
     /**
@@ -268,7 +249,7 @@ public:
      */
     template<typename E>
     Connection<E> once(Listener<E> f) {
-        return handler<E>().once(std::move(f));
+        return std::get<Handler<E>>(pools).once(std::move(f));
     }
 
     /**
@@ -277,7 +258,7 @@ public:
      */
     template<typename E>
     void erase(Connection<E> conn) noexcept {
-        handler<E>().erase(std::move(conn));
+        std::get<Handler<E>>(pools).erase(std::move(conn));
     }
 
     /**
@@ -285,15 +266,14 @@ public:
      */
     template<typename E>
     void clear() noexcept {
-        handler<E>().clear();
+        std::get<Handler<E>>(pools).clear();
     }
 
     /**
      * @brief Disconnects all the listeners.
      */
     void clear() noexcept {
-        std::for_each(handlers.begin(), handlers.end(),
-                      [](auto &&hdlr){ if(hdlr) { hdlr->clear(); } });
+        std::apply([](auto& ...x){(..., x.clear());}, pools);
     }
 
     /**
@@ -303,11 +283,7 @@ public:
      */
     template<typename E>
     bool empty() const noexcept {
-        std::size_t type = event_type<E>();
-
-        return (!(type < handlers.size()) ||
-                !handlers[type] ||
-                static_cast<Handler<E>&>(*handlers[type]).empty());
+        return std::get<Handler<E>>(pools).empty();
     }
 
     /**
@@ -316,12 +292,19 @@ public:
      * false otherwise.
      */
     bool empty() const noexcept {
-        return std::all_of(handlers.cbegin(), handlers.cend(),
-                           [](auto &&hdlr){ return !hdlr || hdlr->empty(); });
+        auto empty{true};
+        std::apply([&empty](auto&&... args) {((empty &= args.empty()), ...);}, pools);
+        return empty;
     }
 
 private:
-    std::vector<std::unique_ptr<BaseHandler>> handlers{};
+    std::tuple<Handler<Events>...> pools;
+};
+
+struct UVW_EXTERN FakeEvent { };
+
+struct UVW_EXTERN TestEmitter: Emitter<TestEmitter, FakeEvent, ErrorEvent> {
+    void emit() { publish(FakeEvent{}); }
 };
 
 

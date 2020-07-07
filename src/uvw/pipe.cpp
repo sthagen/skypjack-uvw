@@ -73,4 +73,24 @@ UVW_INLINE bool PipeHandle::chmod(Flags<Chmod> flags) noexcept {
 }
 
 
+    template class UVW_EXTERN Resource<PipeHandle, uv_pipe_t, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>;
+
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<ConnectEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<DataEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<EndEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<ListenEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<WriteEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<ShutdownEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<CloseEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Connection<ErrorEvent>;
+
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<ConnectEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<DataEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<EndEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<ListenEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<WriteEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<ShutdownEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<CloseEvent>;
+    template struct UVW_EXTERN Emitter<PipeHandle, ConnectEvent, DataEvent, EndEvent, ListenEvent, WriteEvent, ShutdownEvent, CloseEvent, ErrorEvent>::Handler<ErrorEvent>;
+
 }

@@ -7,7 +7,6 @@
 
 namespace uvw {
 
-
 UVW_INLINE int ErrorEvent::translate(int sys) noexcept {
     return uv_translate_sys_error(sys);
 }

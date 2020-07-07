@@ -71,7 +71,7 @@ struct UVW_EXTERN NameInfoEvent {
  *
  * To create a `GetAddrInfoReq` through a `Loop`, no arguments are required.
  */
-class UVW_EXTERN GetAddrInfoReq final: public Request<GetAddrInfoReq, uv_getaddrinfo_t> {
+class UVW_EXTERN GetAddrInfoReq final: public Request<GetAddrInfoReq, uv_getaddrinfo_t, AddrInfoEvent, ErrorEvent> {
     static void addrInfoCallback(uv_getaddrinfo_t *req, int status, addrinfo *res);
     void nodeAddrInfo(const char *node, const char *service, addrinfo *hints = nullptr);
     auto nodeAddrInfoSync(const char *node, const char *service, addrinfo *hints = nullptr);
@@ -79,7 +79,7 @@ class UVW_EXTERN GetAddrInfoReq final: public Request<GetAddrInfoReq, uv_getaddr
 public:
     using Deleter = void(*)(addrinfo *);
 
-    using Request::Request;
+    using Request<GetAddrInfoReq, uv_getaddrinfo_t, AddrInfoEvent, ErrorEvent>::Request;
 
     /**
      * @brief Async [getaddrinfo](http://linux.die.net/man/3/getaddrinfo).
@@ -156,11 +156,11 @@ public:
  *
  * To create a `GetNameInfoReq` through a `Loop`, no arguments are required.
  */
-class UVW_EXTERN GetNameInfoReq final: public Request<GetNameInfoReq, uv_getnameinfo_t> {
+class UVW_EXTERN GetNameInfoReq final: public Request<GetNameInfoReq, uv_getnameinfo_t, NameInfoEvent, ErrorEvent> {
     static void nameInfoCallback(uv_getnameinfo_t *req, int status, const char *hostname, const char *service);
 
 public:
-    using Request::Request;
+    using Request<GetNameInfoReq, uv_getnameinfo_t, NameInfoEvent, ErrorEvent>::Request;
 
     /**
      * @brief Async [getnameinfo](http://linux.die.net/man/3/getnameinfo).

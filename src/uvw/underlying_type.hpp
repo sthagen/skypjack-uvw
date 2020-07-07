@@ -20,10 +20,10 @@ namespace uvw {
  * It acts mainly as a wrapper around data structures of the underlying library.
  */
 template<typename T, typename U>
-class UnderlyingType {
+class UVW_EXTERN UnderlyingType {
     template<typename, typename>
     friend class UnderlyingType;
-
+    
 protected:
     struct ConstructorAccess { explicit ConstructorAccess(int) {} };
 

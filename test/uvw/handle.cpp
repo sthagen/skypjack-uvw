@@ -2,11 +2,11 @@
 #include <uvw.hpp>
 
 
-struct fake_handle_t { void *data; };
+struct UVW_EXTERN fake_handle_t { void *data; };
 
 
-struct FakeHandle: uvw::Handle<FakeHandle, fake_handle_t> {
-    using Handle::Handle;
+struct UVW_EXTERN FakeHandle: uvw::Handle<FakeHandle, fake_handle_t, uvw::CloseEvent, uvw::ErrorEvent> {
+    using Handle<FakeHandle, fake_handle_t, uvw::CloseEvent, uvw::ErrorEvent>::Handle;
 
     template<typename... Args>
     bool init(Args&&...) { return initialize([](auto...){ return true; }); }

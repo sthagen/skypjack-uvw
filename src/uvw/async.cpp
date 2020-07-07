@@ -23,5 +23,12 @@ UVW_INLINE void AsyncHandle::send() {
     invoke(&uv_async_send, get());
 }
 
+    template class UVW_EXTERN Resource<AsyncHandle, uv_async_t, AsyncEvent, CloseEvent, ErrorEvent>;
+    template struct UVW_EXTERN Emitter<AsyncHandle, AsyncEvent, CloseEvent, ErrorEvent>::Connection<AsyncEvent>;
+    template struct UVW_EXTERN Emitter<AsyncHandle, AsyncEvent, CloseEvent, ErrorEvent>::Connection<CloseEvent>;
+    template struct UVW_EXTERN Emitter<AsyncHandle, AsyncEvent, CloseEvent, ErrorEvent>::Connection<ErrorEvent>;
+    template struct UVW_EXTERN Emitter<AsyncHandle, AsyncEvent, CloseEvent, ErrorEvent>::Handler<AsyncEvent>;
+    template struct UVW_EXTERN Emitter<AsyncHandle, AsyncEvent, CloseEvent, ErrorEvent>::Handler<CloseEvent>;
+    template struct UVW_EXTERN Emitter<AsyncHandle, AsyncEvent, CloseEvent, ErrorEvent>::Handler<ErrorEvent>;
 
 }

@@ -19,8 +19,9 @@ namespace uvw {
  *
  * This is the base class for handles and requests.
  */
-template<typename T, typename U>
-class Resource: public UnderlyingType<T, U>, public Emitter<T>, public std::enable_shared_from_this<T> {
+template<typename T, typename U, typename ...Events>
+class UVW_EXTERN Resource: public UnderlyingType<T, U>, public Emitter<T, Events...>, public std::enable_shared_from_this<T> {
+
 protected:
     using ConstructorAccess = typename UnderlyingType<T, U>::ConstructorAccess;
 
