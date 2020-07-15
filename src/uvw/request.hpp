@@ -7,6 +7,9 @@
 #include <memory>
 #include <uv.h>
 #include "resource.hpp"
+#include "config.h"
+
+UVW_MSVC_WARNING_PUSH_DISABLE_DLLINTERFACE();
 
 
 namespace uvw {
@@ -76,5 +79,7 @@ public:
 
 
 }
+
+UVW_MSVC_WARNING_POP();
 
 #endif // UVW_REQUEST_INCLUDE_H
