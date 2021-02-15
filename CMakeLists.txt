@@ -16,7 +16,7 @@ endif()
 # Project configuration
 #
 set(UVW_VERSION_MAJOR 2)
-set(UVW_VERSION_MINOR 8)
+set(UVW_VERSION_MINOR 9)
 set(UVW_VERSION_PATCH 0)
 
 project(
@@ -30,11 +30,6 @@ project(
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
-
-message("*")
-message("* ${PROJECT_NAME} v${PROJECT_VERSION} (${CMAKE_BUILD_TYPE})")
-message("* Copyright (c) 2016-2020 Michele Caini <michele.caini@gmail.com>")
-message("*")
 
 option(USE_LIBCPP "Use libc++ by adding -stdlib=libc++ flag if availbale." ON)
 option(USE_ASAN "Use address sanitizer by adding -fsanitize=address -fno-omit-frame-pointer flags" OFF)
@@ -65,26 +60,30 @@ if(NOT WIN32 AND USE_LIBCPP)
     cmake_pop_check_state()
 endif()
 
+option(FETCH_LIBUV "Fetch the libuv repo using CMake FetchContent facility" ON)
 function(fetch_libuv)
-    include(FetchContent)
+    if (FETCH_LIBUV)
+        include(FetchContent)
 
-    FetchContent_Declare(
-        libuv
-        GIT_REPOSITORY https://github.com/libuv/libuv.git
-        GIT_TAG v1.40.0
-        GIT_SHALLOW 1
-    )
+        FetchContent_Declare(
+            libuv
+            GIT_REPOSITORY https://github.com/libuv/libuv.git
+            GIT_TAG v1.41.0
+            GIT_SHALLOW 1
+        )
 
-    FetchContent_GetProperties(libuv)
+        FetchContent_GetProperties(libuv)
 
-    if(NOT libuv_POPULATED)
-        FetchContent_Populate(libuv)
-        add_subdirectory(${libuv_SOURCE_DIR} ${libuv_BINARY_DIR})
-    endif()
+        if(NOT libuv_POPULATED)
+            FetchContent_Populate(libuv)
+            add_subdirectory(${libuv_SOURCE_DIR} ${libuv_BINARY_DIR})
+        endif()
 
-    add_library(uv::uv-static ALIAS uv_a)
-    set_target_properties(uv_a PROPERTIES POSITION_INDEPENDENT_CODE 1)
-    set_target_properties(uv PROPERTIES POSITION_INDEPENDENT_CODE 1)
+        add_library(uv::uv-static ALIAS uv_a)
+
+        set_target_properties(uv_a PROPERTIES POSITION_INDEPENDENT_CODE 1)
+        set_target_properties(uv PROPERTIES POSITION_INDEPENDENT_CODE 1)
+    endif(FETCH_LIBUV)
 endfunction()
 
 #
@@ -93,10 +92,11 @@ endfunction()
 
 include(GNUInstallDirs)
 
+
 if(BUILD_UVW_LIBS)
     fetch_libuv()
-    add_subdirectory(src)
 
+    add_subdirectory(src)
     file(GLOB HEADERS src/uvw/*.h src/uvw/*.hpp)
 else()
     add_library(uvw INTERFACE)
@@ -167,6 +167,7 @@ if(BUILD_TESTING)
     option(FIND_GTEST_PACKAGE "Enable finding gtest package." OFF)
 
     fetch_libuv()
+
     enable_testing()
     add_subdirectory(test)
 endif()
