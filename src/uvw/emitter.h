@@ -7,10 +7,11 @@
 #include <algorithm>
 #include <utility>
 #include <cstddef>
-#include <vector>
+#include <unordered_map>
 #include <memory>
 #include <list>
 #include <uv.h>
+#include "type_info.hpp"
 
 
 namespace uvw {
@@ -157,30 +158,15 @@ class Emitter {
         ListenerList onL{};
     };
 
-    static std::size_t next_type() noexcept {
-        static std::size_t counter = 0;
-        return counter++;
-    }
-
-    template<typename>
-    static std::size_t event_type() noexcept {
-        static std::size_t value = next_type();
-        return value;
-    }
-
     template<typename E>
     Handler<E> & handler() noexcept {
-        std::size_t type = event_type<E>();
+        auto id = type<E>();
 
-        if(!(type < handlers.size())) {
-            handlers.resize(type+1);
+        if(!handlers.count(id)) {
+           handlers[id] = std::make_unique<Handler<E>>();
         }
 
-        if(!handlers[type]) {
-           handlers[type] = std::make_unique<Handler<E>>();
-        }
-
-        return static_cast<Handler<E>&>(*handlers[type]);
+        return static_cast<Handler<E>&>(*handlers.at(id));
     }
 
 protected:
@@ -282,7 +268,7 @@ public:
      */
     void clear() noexcept {
         std::for_each(handlers.begin(), handlers.end(),
-                      [](auto &&hdlr){ if(hdlr) { hdlr->clear(); } });
+                      [](auto &&hdlr){ if(hdlr.second) { hdlr.second->clear(); } });
     }
 
     /**
@@ -292,11 +278,10 @@ public:
      */
     template<typename E>
     bool empty() const noexcept {
-        std::size_t type = event_type<E>();
+        auto id = type<E>();
 
-        return (!(type < handlers.size()) ||
-                !handlers[type] ||
-                static_cast<Handler<E>&>(*handlers[type]).empty());
+        return (!handlers.count(id) ||
+            static_cast<Handler<E>&>(*handlers.at(id)).empty());
     }
 
     /**
@@ -306,11 +291,11 @@ public:
      */
     bool empty() const noexcept {
         return std::all_of(handlers.cbegin(), handlers.cend(),
-                           [](auto &&hdlr){ return !hdlr || hdlr->empty(); });
+                           [](auto &&hdlr){ return !hdlr.second || hdlr.second->empty(); });
     }
 
 private:
-    std::vector<std::unique_ptr<BaseHandler>> handlers{};
+    std::unordered_map<std::uint32_t, std::unique_ptr<BaseHandler>> handlers{};
 };
 
 
