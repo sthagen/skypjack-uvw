@@ -16,8 +16,8 @@ endif()
 # Project configuration
 #
 set(UVW_VERSION_MAJOR 2)
-set(UVW_VERSION_MINOR 11)
-set(UVW_VERSION_PATCH 0)
+set(UVW_VERSION_MINOR 12)
+set(UVW_VERSION_PATCH 1)
 
 project(
     uvw
@@ -68,7 +68,7 @@ endif()
 
 
 # Required minimal libuv version
-set(LIBUV_VERSION 1.43.0)
+set(LIBUV_VERSION 1.44.1)
 
 function(fetch_libuv)
     if (FETCH_LIBUV)
@@ -199,6 +199,7 @@ if(FETCH_LIBUV AND BUILD_UVW_LIBS)
     endif()
     
 endif(FETCH_LIBUV AND BUILD_UVW_LIBS)
+export(EXPORT uvwConfig)
 
 ### Testing
 
