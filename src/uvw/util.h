@@ -38,6 +38,11 @@ enum class uvw_handle_type : std::underlying_type_t<uv_handle_type> {
     FILE = UV_FILE
 };
 
+enum class uvw_clock_id : std::underlying_type_t<uv_clock_id> {
+    MONOTONIC = UV_CLOCK_MONOTONIC,
+    REALTIME = UV_CLOCK_REALTIME
+};
+
 template<typename T>
 struct uv_type_wrapper {
     using Type = T;
@@ -81,6 +86,7 @@ using file_handle = details::uv_type_wrapper<uv_file>;            /*!< Utility c
 using os_socket_handle = details::uv_type_wrapper<uv_os_sock_t>;  /*!< Utility class that wraps an os socket handle. */
 using os_file_descriptor = details::uv_type_wrapper<uv_os_fd_t>;  /*!< Utility class that wraps an os file descriptor. */
 using pid_type = details::uv_type_wrapper<uv_pid_t>;              /*!< Utility class that wraps a cross platform representation of a pid. */
+using clock_id = details::uvw_clock_id;                           /*!< Utility class that wraps a clock source. */
 
 constexpr file_handle std_in{0};  /*!< Placeholder for stdin descriptor. */
 constexpr file_handle std_out{1}; /*!< Placeholder for stdout descriptor. */
@@ -94,6 +100,7 @@ using gid_type = uv_gid_t;       /*!< Library equivalent for uv_gid_t. */
 
 using timeval = uv_timeval_t;       /*!< Library equivalent for uv_timeval_t. */
 using timeval64 = uv_timeval64_t;   /*!< Library equivalent for uv_timeval64_t. */
+using timespec64 = uv_timespec64_t; /*!< Library equivalent for uv_timespec64_t. */
 using resource_usage = uv_rusage_t; /*!< Library equivalent for uv_rusage_t. */
 
 /**
@@ -592,6 +599,12 @@ struct utilities {
     static uint64_t constrained_memory() noexcept;
 
     /**
+     * @brief Gets the amount of free memory still available to the process.
+     * @return Amount of free memory still available to the process (in bytes).
+     */
+    static uint64_t available_memory() noexcept;
+
+    /**
      * @brief Gets the current system uptime.
      * @return The current system uptime or 0 in case of errors.
      */
@@ -602,6 +615,13 @@ struct utilities {
      * @return Resource usage measures, zeroes-filled object in case of errors.
      */
     static resource_usage rusage() noexcept;
+
+    /**
+     * @brief Gets the current system time from a high-resolution clock source.
+     * @param source Clock source, either real-time or monotonic.
+     * @return Current system time from the given high-resolution clock source.
+     */
+    static timespec64 gettime(clock_id source) noexcept;
 
     /**
      * @brief Gets the current high-resolution real time.

@@ -219,7 +219,7 @@ UVW_INLINE std::vector<cpu_info> utilities::cpu() noexcept {
     int count;
 
     if(0 == uv_cpu_info(&infos, &count)) {
-        for (int next = 0; next < count; ++next) {
+        for(int next = 0; next < count; ++next) {
             cpuinfos.push_back({infos[next].model, infos[next].speed, infos[next].cpu_times});
         }
 
@@ -306,6 +306,10 @@ UVW_INLINE uint64_t utilities::constrained_memory() noexcept {
     return uv_get_constrained_memory();
 }
 
+UVW_INLINE uint64_t utilities::available_memory() noexcept {
+    return uv_get_available_memory();
+}
+
 UVW_INLINE double utilities::uptime() noexcept {
     double ret;
 
@@ -320,6 +324,12 @@ UVW_INLINE resource_usage utilities::rusage() noexcept {
     resource_usage ru;
     auto err = uv_getrusage(&ru);
     return err ? resource_usage{} : ru;
+}
+
+UVW_INLINE timespec64 utilities::gettime(clock_id source) noexcept {
+    timespec64 ts;
+    auto err = uv_clock_gettime(static_cast<uv_clock_id>(source), &ts);
+    return err ? timespec64{} : ts;
 }
 
 UVW_INLINE uint64_t utilities::hrtime() noexcept {
