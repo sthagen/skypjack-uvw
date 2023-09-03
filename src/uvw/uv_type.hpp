@@ -16,7 +16,7 @@ namespace uvw {
  */
 template<typename U>
 struct uv_type {
-    explicit uv_type(loop::token token, std::shared_ptr<loop> ref) noexcept
+    explicit uv_type(loop::token, std::shared_ptr<loop> ref) noexcept
         : owner{std::move(ref)}, resource{} {}
 
     uv_type(const uv_type &) = delete;
@@ -24,14 +24,6 @@ struct uv_type {
 
     uv_type &operator=(const uv_type &) = delete;
     uv_type &operator=(uv_type &&) = delete;
-
-    /**
-     * @brief Initializes the handle.
-     * @return Underlying return value.
-     */
-    virtual int init() {
-        return 0;
-    }
 
     /**
      * @brief Gets the loop from which the resource was originated.
@@ -78,6 +70,9 @@ struct uv_type {
     U *raw() noexcept {
         return &resource;
     }
+
+protected:
+    ~uv_type() = default;
 
 private:
     std::shared_ptr<loop> owner;
