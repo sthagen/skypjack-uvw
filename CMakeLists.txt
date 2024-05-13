@@ -16,7 +16,7 @@ endif()
 # Project configuration
 #
 set(UVW_VERSION_MAJOR 3)
-set(UVW_VERSION_MINOR 4)
+set(UVW_VERSION_MINOR 5)
 set(UVW_VERSION_PATCH 0)
 
 project(
@@ -68,7 +68,7 @@ endif()
 
 
 # Required minimal libuv version
-set(LIBUV_VERSION 1.47.0)
+set(LIBUV_VERSION 1.48.0)
 
 function(fetch_libuv)
     if (FETCH_LIBUV)
@@ -242,7 +242,7 @@ endif()
 option(BUILD_DOCS "Enable building with documentation." OFF)
 
 if(BUILD_DOCS)
-    find_package(Doxygen 1.8)
+    find_package(Doxygen 1.10)
 
     if(DOXYGEN_FOUND)
         add_subdirectory(docs)
