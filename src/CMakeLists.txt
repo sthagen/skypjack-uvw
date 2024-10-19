@@ -42,17 +42,17 @@ function(add_uvw_library LIB_NAME)
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     )
 
-    if(USE_ASAN)
+    if(UVW_USE_ASAN)
         target_compile_options(${LIB_NAME} PUBLIC $<$<CONFIG:Debug>:-fsanitize=address -fno-omit-frame-pointer>)
         target_link_libraries(${LIB_NAME} PUBLIC $<$<CONFIG:Debug>:-fsanitize=address>)
     endif()
 
-    if(USE_UBSAN)
+    if(UVW_USE_UBSAN)
         target_compile_options(${LIB_NAME} PUBLIC $<$<CONFIG:Debug>:-fsanitize=undefined -fno-sanitize-recover=all -fno-omit-frame-pointer>)
         target_link_libraries(${LIB_NAME} PUBLIC $<$<CONFIG:Debug>:-fsanitize=undefined>)
     endif()
 
-    if(HAS_LIBCPP)
+    if(UVW_HAS_LIBCPP)
         target_compile_options(${LIB_NAME} BEFORE PUBLIC -stdlib=libc++)
     endif()
 endfunction()
@@ -61,18 +61,18 @@ endfunction()
 # Build and install libraries
 #
 
-if (BUILD_UVW_SHARED_LIB)
+if (UVW_BUILD_SHARED_LIB)
     add_library(uvw SHARED)
     add_library(uvw::uvw-shared ALIAS uvw)
     # If libuv is not fetched by ourselves, it's the caller's responsibility to make sure of the linkage.
-    if(FETCH_LIBUV OR libuv_FOUND)
+    if(UVW_FETCH_LIBUV OR libuv_FOUND)
         target_link_libraries(uvw PUBLIC uv::uv-shared)
     endif()
 else()
     add_library(uvw STATIC)
     add_library(uvw::uvw-static ALIAS uvw)
     # If libuv is not fetched by ourselves, it's the caller's responsibility to make sure of the linkage.
-    if(FETCH_LIBUV OR libuv_FOUND)
+    if(UVW_FETCH_LIBUV OR libuv_FOUND)
         target_link_libraries(uvw PUBLIC uv::uv-static)
     endif()
 endif()
