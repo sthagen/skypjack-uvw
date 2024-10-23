@@ -49,7 +49,7 @@ UVW_INLINE int process_handle::spawn(const char *file, char **args, char **env) 
     po.stdio = poStdio.data();
 
     // see init member function for more details
-    leak_if(0);
+    static_cast<void>(leak_if(0));
 
     return uv_spawn(parent().raw(), raw(), &po);
 }
@@ -85,7 +85,7 @@ UVW_INLINE process_handle &process_handle::stdio(file_handle fd, stdio_flags fla
         uv_stdio_container_t container;
         container.flags = fgs;
         container.data.fd = actual;
-        po_fd_stdio.push_back(std::move(container));
+        po_fd_stdio.push_back(container);
     } else {
         it->flags = fgs;
         it->data.fd = actual;

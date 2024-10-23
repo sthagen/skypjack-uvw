@@ -4,7 +4,7 @@
 namespace uvw {
 
 UVW_INLINE poll_event::poll_event(details::uvw_poll_event events) noexcept
-    : flags{std::move(events)} {}
+    : flags{events} {}
 
 UVW_INLINE poll_handle::poll_handle(loop::token token, std::shared_ptr<loop> ref, int desc)
     : handle{token, std::move(ref)}, tag{FD}, file_desc{desc} {}
@@ -12,6 +12,7 @@ UVW_INLINE poll_handle::poll_handle(loop::token token, std::shared_ptr<loop> ref
 UVW_INLINE poll_handle::poll_handle(loop::token token, std::shared_ptr<loop> ref, os_socket_handle sock)
     : handle{token, std::move(ref)}, tag{SOCKET}, socket{sock} {}
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 UVW_INLINE void poll_handle::start_callback(uv_poll_t *hndl, int status, int events) {
     if(poll_handle &poll = *(static_cast<poll_handle *>(hndl->data)); status) {
         poll.publish(error_event{status});

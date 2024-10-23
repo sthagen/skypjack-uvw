@@ -3,7 +3,7 @@
 namespace uvw {
 
 UVW_INLINE passwd_info::passwd_info(std::shared_ptr<uv_passwd_t> pwd)
-    : value{pwd} {}
+    : value{std::move(pwd)} {}
 
 UVW_INLINE std::string passwd_info::username() const noexcept {
     return ((value && value->username) ? value->username : "");
@@ -30,7 +30,7 @@ UVW_INLINE passwd_info::operator bool() const noexcept {
 }
 
 UVW_INLINE uts_name::uts_name(std::shared_ptr<uv_utsname_t> init)
-    : uname{init} {}
+    : uname{std::move(init)} {}
 
 UVW_INLINE std::string uts_name::sysname() const noexcept {
     return uname ? uname->sysname : "";
@@ -69,16 +69,16 @@ UVW_INLINE sockaddr ip_addr(const char *addr, unsigned int port) {
 }
 
 UVW_INLINE socket_address sock_addr(const sockaddr_in &addr) {
-    if(char name[details::DEFAULT_SIZE]; uv_ip4_name(&addr, name, details::DEFAULT_SIZE) == 0) {
-        return socket_address{std::string{name}, ntohs(addr.sin_port)};
+    if(std::array<char, details::DEFAULT_SIZE> name{}; uv_ip4_name(&addr, name.data(), details::DEFAULT_SIZE) == 0) {
+        return socket_address{std::string{name.data()}, ntohs(addr.sin_port)};
     }
 
     return socket_address{};
 }
 
 UVW_INLINE socket_address sock_addr(const sockaddr_in6 &addr) {
-    if(char name[details::DEFAULT_SIZE]; uv_ip6_name(&addr, name, details::DEFAULT_SIZE) == 0) {
-        return socket_address{std::string{name}, ntohs(addr.sin6_port)};
+    if(std::array<char, details::DEFAULT_SIZE> name{}; uv_ip6_name(&addr, name.data(), details::DEFAULT_SIZE) == 0) {
+        return socket_address{std::string{name.data()}, ntohs(addr.sin6_port)};
     }
 
     return socket_address{};
@@ -239,7 +239,7 @@ UVW_INLINE std::vector<interface_address> utilities::interface_addresses() noexc
             interface_address iface_addr;
 
             iface_addr.name = ifaces[next].name;
-            std::copy(ifaces[next].phys_addr, (ifaces[next].phys_addr + 6), iface_addr.physical);
+            std::copy(ifaces[next].phys_addr, (ifaces[next].phys_addr + 6), iface_addr.physical.data());
             iface_addr.internal = ifaces[next].is_internal == 0 ? false : true;
 
             if(ifaces[next].address.address4.sin_family == AF_INET) {
@@ -282,12 +282,11 @@ UVW_INLINE char **utilities::setup_args(int argc, char **argv) {
 }
 
 UVW_INLINE std::string utilities::process_title() {
-    std::size_t size = details::DEFAULT_SIZE;
-    char buf[details::DEFAULT_SIZE];
+    std::array<char, details::DEFAULT_SIZE> buf{};
     std::string str{};
 
-    if(0 == uv_get_process_title(buf, size)) {
-        str.assign(buf, size);
+    if(0 == uv_get_process_title(buf.data(), details::DEFAULT_SIZE)) {
+        str.assign(buf.data(), details::DEFAULT_SIZE);
     }
 
     return str;
