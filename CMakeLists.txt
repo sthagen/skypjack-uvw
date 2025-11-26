@@ -2,15 +2,7 @@
 # uvw
 #
 
-cmake_minimum_required(VERSION 3.13)
-
-#
-# Building in-tree is not allowed (we take care of your craziness).
-#
-
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
-    message(FATAL_ERROR "Prevented in-tree built. Please create a build directory outside of the source code and call cmake from there. Thank you.")
-endif()
+cmake_minimum_required(VERSION 3.15.7)
 
 #
 # Project configuration
@@ -168,7 +160,13 @@ else()
     endif()
 
     if(UVW_CLANG_TIDY_EXECUTABLE)
-        set(CMAKE_CXX_CLANG_TIDY "${UVW_CLANG_TIDY_EXECUTABLE};--config-file=${uvw_SOURCE_DIR}/.clang-tidy;--header-filter=${uvw_SOURCE_DIR}/src/uvw/.*")
+        set(UVW_CLANG_TIDY_OPTIONS ";--config-file=${uvw_SOURCE_DIR}/.clang-tidy;--header-filter=${uvw_SOURCE_DIR}/src/uvw/.*")
+
+        if(MSVC AND NOT (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+            set(UVW_CLANG_TIDY_OPTIONS "${UVW_CLANG_TIDY_OPTIONS};--extra-arg=/EHsc;--extra-arg=/wd4996")
+        endif()
+
+        set(CMAKE_CXX_CLANG_TIDY "${UVW_CLANG_TIDY_EXECUTABLE}${UVW_CLANG_TIDY_OPTIONS}")
     endif()
 
     if(UVW_HAS_LIBCPP)
